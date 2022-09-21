@@ -139,11 +139,26 @@ async function run(): Promise<void> {
     }
 
     // use the last match (end of the branch name)
-    const issueKey = issueKeys[issueKeys.length - 1];
-    console.log(`JIRA key -> ${issueKey}`);
+    let issueKey = null;
+    let details: JIRADetails | null = null;
 
-    const details: JIRADetails = await jira.getTicketDetails(issueKey);
-    if (details.key) {
+    for (const key of issueKeys) {
+      details = await jira.getTicketDetails(key);
+
+      // if the details is present then no need to iterate firther
+      if (details) {
+        issueKey = key;
+        break;
+      }
+    }
+
+    // If none of the Issuekeys are valid then exit the process
+    if (!details) {
+      return exit('JIRA issue id is not valid in the branch name.');
+    }
+
+    console.log(`JIRA key -> ${issueKey}`);
+    if (details?.key) {
       const podLabel: string = details?.project?.name || '';
       const hotfixLabel: string = GitHub.getHotfixLabel(baseBranch);
       const typeLabel: string = details?.type?.name || '';

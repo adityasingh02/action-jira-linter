@@ -119,6 +119,16 @@ describe('JIRA Client', () => {
   });
 });
 
+describe('issueKeyNotValidShouldRetunNull', () => {
+  // use this to test if the issue key is not valid then it should return null
+  it('should return null if the issue key is not valid', async () => {
+    const jira = new Jira('https://cleartaxtech.atlassian.net/', '<username>', '<token_here>');
+    const details = await jira.getTicketDetails('TEST-1120');
+    console.log(`Insidesdsd ${details}`);
+    expect(details).toBeNull();
+  });
+});
+
 describe('isIssueStatusValid()', () => {
   const issue: JIRADetails = {
     key: 'ABC-123',

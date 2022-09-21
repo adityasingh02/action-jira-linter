@@ -129,7 +129,7 @@ async function run(): Promise<void> {
       process.exit(0);
     }
 
-    const issueKeys = Jira.getJIRAIssueKeys(headBranch);
+    const issueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
     if (!issueKeys.length) {
       const body = Jira.getNoIdComment(headBranch);
       const comment = { ...commonPayload, body };
@@ -153,7 +153,7 @@ async function run(): Promise<void> {
 
     // If none of the Issuekeys are valid then exit the process
     if (!details) {
-      return exit('JIRA issue id is not valid in the branch name.');
+      return exit('JIRA id is not valid in the branch name.');
     }
 
     console.log(`JIRA key -> ${issueKey}`);

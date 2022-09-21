@@ -138,7 +138,6 @@ async function run(): Promise<void> {
       return exit('JIRA issue id is missing in your branch.');
     }
 
-    // use the last match (end of the branch name)
     let issueKey = null;
     let details: JIRADetails | null = null;
 

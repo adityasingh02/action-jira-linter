@@ -97,6 +97,26 @@ export class Jira {
     }
   };
 
+  getJiraDetails = async (issueKeys: string[]): Promise<JIRADetails | null> => {
+    let issueKey = null;
+    let details: JIRADetails | null = null;
+
+    for (const key of issueKeys) {
+      details = await this.getTicketDetails(key);
+      // if the details is present then no need to iterate further
+      if (details) {
+        issueKey = key;
+        break;
+      }
+    }
+    // Log the Jira Key
+    if (details) {
+      console.log(`JIRA key -> ${issueKey}`);
+    }
+
+    return details;
+  };
+
   /** Get PR description with story/issue details. */
   static getPRDescription = (body: string | null, details: JIRADetails, skipJiraTable: boolean): string => {
     const displayKey = details.key.toUpperCase();

@@ -212,7 +212,7 @@ it('test to fetch jira details from the PR title', async () => {
   // Input a test PR title
   // O/p should be the valid brnach
 
-  const prTitle = 'This is a test PR title for Test-3432 TEST-1234 branch';
+  const prTitle = 'This is a test PR title for TEST-123456 TEST-1234 branch';
   const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(prTitle);
   const details = await jira.getJiraDetails(titleIssueKeys);
   expect(details).not.toBeNull();

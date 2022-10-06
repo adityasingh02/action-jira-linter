@@ -214,6 +214,7 @@ it('test to fetch jira details from the PR title', async () => {
 
   const prTitle = 'This is a test PR title for TEST-123456 TEST-1234 branch';
   const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(prTitle);
+  expect(titleIssueKeys).toEqual(['TEST-123456', 'TEST-1234']);
   const details = await jira.getJiraDetails(titleIssueKeys);
   expect(details).not.toBeNull();
   expect(details?.key).toEqual('TEST-1234');

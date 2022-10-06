@@ -140,6 +140,7 @@ describe('JIRA Client', () => {
     // when the first key is valid
     const details = await jira.getJiraDetails(['TEST-1234', 'TEST-123456']);
     expect(details).not.toBeNull();
+    expect(details?.key).toEqual('TEST-1234');
   });
 
   it('test to access jira ticket from multiple keys when first is wrong', async () => {
@@ -172,6 +173,7 @@ describe('JIRA Client', () => {
     // when the second key is a valid
     const details = await jira.getJiraDetails(['TEST-123456', 'TEST-1234']);
     expect(details).not.toBeNull();
+    expect(details?.key).toEqual('TEST-1234');
 
     // when both the keys are wrong
     const result = await jira.getJiraDetails(['TEST-123456', 'TEST-12341']);

@@ -148,7 +148,9 @@ async function run(): Promise<void> {
     }
 
     // If the Jira keys are not present in the branch name the fetch from the PR title
+    console.log('-------------title', titleIssueKeys);
     if (details == null && titleIssueKeys.length > 0) {
+      console.log('-------------inside');
       details = await jira.getJiraDetails(titleIssueKeys);
     }
 

@@ -128,7 +128,11 @@ async function run(): Promise<void> {
       process.exit(0);
     }
 
-    const issueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
+    const branchIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
+    const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(title);
+
+    // merge the branch and title issue keys
+    const issueKeys = [...branchIssueKeys, ...titleIssueKeys];
     if (!issueKeys.length) {
       const body = Jira.getNoIdComment(headBranch);
       const comment = { ...commonPayload, body };

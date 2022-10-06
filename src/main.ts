@@ -132,7 +132,7 @@ async function run(): Promise<void> {
     }
 
     const branchIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
-    const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
+    const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(title);
     if (!branchIssueKeys.length && !titleIssueKeys.length) {
       const body = Jira.getNoIdComment(headBranch);
       const comment = { ...commonPayload, body };

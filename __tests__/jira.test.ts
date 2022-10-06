@@ -181,6 +181,44 @@ describe('JIRA Client', () => {
   });
 });
 
+it('test to fetch jira details from the PR title', async () => {
+  // for mocking jira client
+  nock('https://cleartaxtech.atlassian.net').get('/rest/api/3').reply(200, { key: 'key' });
+  // for mocking the issue key api with 200
+  nock('https://cleartaxtech.atlassian.net/rest/api/3')
+    .get('/issue/TEST-1234?fields=project,summary,issuetype,labels,status,customfield_10016')
+    .reply(200, {
+      id: 'TEST-1234',
+      key: 'TEST-1234',
+      self: 'TEST-1234',
+      status: 'success',
+      fields: {
+        summary: 'test',
+        status: 'IssueStatus',
+        priority: 'IssuePriority',
+        issuetype: 'IssueType',
+        project: 'IssueProject',
+        labels: [],
+      },
+    });
+
+  // for mocking the request for 404 request
+  nock('https://cleartaxtech.atlassian.net/rest/api/3')
+    .get('/issue/TEST-123456?fields=project,summary,issuetype,labels,status,customfield_10016')
+    .reply(404, {});
+  const jira = new Jira('https://cleartaxtech.atlassian.net', '<username>', '<token_here>');
+
+  // scenario
+  // Input a test PR title
+  // O/p should be the valid brnach
+
+  const prTitle = 'This is a test PR title for Test-3432 TEST-1234 branch';
+  const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(prTitle);
+  const details = await jira.getJiraDetails(titleIssueKeys);
+  expect(details).not.toBeNull();
+  expect(details?.key).toEqual('TEST-1234');
+});
+
 describe('isIssueStatusValid()', () => {
   const issue: JIRADetails = {
     key: 'ABC-123',

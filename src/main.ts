@@ -104,8 +104,6 @@ async function run(): Promise<void> {
       additions = 0,
       title = '',
     } = pullRequest as PullRequestParams;
-    console.log('github title ----', title);
-    console.log(pullRequest);
 
     // common fields for both issue and comment
     const commonPayload: UpdateIssueParams = { owner, repo, issue: prNumber };
@@ -148,9 +146,7 @@ async function run(): Promise<void> {
     }
 
     // If the Jira keys are not present in the branch name the fetch from the PR title
-    console.log('-------------title', titleIssueKeys);
     if (details == null && titleIssueKeys.length > 0) {
-      console.log('-------------inside');
       details = await jira.getJiraDetails(titleIssueKeys);
     }
 

@@ -142,7 +142,7 @@ async function run(): Promise<void> {
     }
 
     // fetch the Jira details from the branch name
-    let details: JIRADetails | null = null
+    let details: JIRADetails | null = null;
     if (branchIssueKeys) {
       details = await jira.getJiraDetails(branchIssueKeys);
     }
@@ -151,7 +151,6 @@ async function run(): Promise<void> {
     if (details == null && titleIssueKeys.length > 0) {
       details = await jira.getJiraDetails(titleIssueKeys);
     }
-
 
     if (details?.key) {
       const podLabel: string = details?.project?.name || '';

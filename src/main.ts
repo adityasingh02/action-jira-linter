@@ -3,6 +3,7 @@ import * as github from '@actions/github';
 
 import {
   CreateIssueCommentParams,
+  JIRADetails,
   JIRALintActionInputs,
   PullRequestParams,
   PullRequestUpdateParams,
@@ -130,8 +131,9 @@ async function run(): Promise<void> {
       process.exit(0);
     }
 
-    const issueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
-    if (!issueKeys.length) {
+    const branchIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
+    const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
+    if (!branchIssueKeys.length && !titleIssueKeys.length) {
       const body = Jira.getNoIdComment(headBranch);
       const comment = { ...commonPayload, body };
       await gh.addComment(comment);
@@ -139,7 +141,17 @@ async function run(): Promise<void> {
       return exit('JIRA issue id is missing in your branch.');
     }
 
-    const details = await jira.getJiraDetails(issueKeys);
+    // fetch the Jira details from the branch name
+    let details: JIRADetails | null = null
+    if (branchIssueKeys) {
+      details = await jira.getJiraDetails(branchIssueKeys);
+    }
+
+    // If the Jira keys are not present in the branch name the fetch from the PR title
+    if (details == null && titleIssueKeys.length > 0) {
+      details = await jira.getJiraDetails(titleIssueKeys);
+    }
+
 
     if (details?.key) {
       const podLabel: string = details?.project?.name || '';

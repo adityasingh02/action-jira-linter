@@ -109,8 +109,6 @@ export class Jira {
         break;
       }
     }
-    // IF the jira key is not calid in branch name then extract from the PR title
-
     // Log the Jira Key
     if (details) {
       console.log(`JIRA key -> ${issueKey}`);

@@ -3,7 +3,6 @@ import * as github from '@actions/github';
 
 import {
   CreateIssueCommentParams,
-  JIRADetails,
   JIRALintActionInputs,
   PullRequestParams,
   PullRequestUpdateParams,
@@ -129,7 +128,7 @@ async function run(): Promise<void> {
       process.exit(0);
     }
 
-    const issueKeys = Jira.getJIRAIssueKeys(headBranch);
+    const issueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
     if (!issueKeys.length) {
       const body = Jira.getNoIdComment(headBranch);
       const comment = { ...commonPayload, body };
@@ -138,12 +137,9 @@ async function run(): Promise<void> {
       return exit('JIRA issue id is missing in your branch.');
     }
 
-    // use the last match (end of the branch name)
-    const issueKey = issueKeys[issueKeys.length - 1];
-    console.log(`JIRA key -> ${issueKey}`);
+    const details = await jira.getJiraDetails(issueKeys);
 
-    const details: JIRADetails = await jira.getTicketDetails(issueKey);
-    if (details.key) {
+    if (details?.key) {
       const podLabel: string = details?.project?.name || '';
       const hotfixLabel: string = GitHub.getHotfixLabel(baseBranch);
       const typeLabel: string = details?.type?.name || '';

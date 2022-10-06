@@ -41,7 +41,7 @@ export class Jira {
     });
   };
 
-  getTicketDetails = async (key: string): Promise<JIRADetails> => {
+  getTicketDetails = async (key: string): Promise<JIRADetails | null> => {
     try {
       const issue: JIRA.Issue = await this.getIssue(key);
       const {
@@ -79,8 +79,10 @@ export class Jira {
         estimate: typeof estimate === 'string' || typeof estimate === 'number' ? estimate : 'N/A',
         labels,
       };
-    } catch (e) {
-      throw e;
+    } catch (error) {
+      console.log(`The JIRA issue key ${key} is not valid. `);
+      console.log({ error });
+      return null;
     }
   };
 
@@ -93,6 +95,26 @@ export class Jira {
     } catch (e) {
       throw e;
     }
+  };
+
+  getJiraDetails = async (issueKeys: string[]): Promise<JIRADetails | null> => {
+    let issueKey = null;
+    let details: JIRADetails | null = null;
+
+    for (const key of issueKeys) {
+      details = await this.getTicketDetails(key);
+      // if the details is present then no need to iterate further
+      if (details) {
+        issueKey = key;
+        break;
+      }
+    }
+    // Log the Jira Key
+    if (details) {
+      console.log(`JIRA key -> ${issueKey}`);
+    }
+
+    return details;
   };
 
   /** Get PR description with story/issue details. */

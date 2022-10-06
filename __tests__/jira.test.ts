@@ -4,6 +4,7 @@
 import { Jira } from '../src/jira';
 import { GitHub } from '../src/github';
 import { JIRADetails } from '../src/types';
+import nock from 'nock';
 
 jest.spyOn(console, 'log').mockImplementation(); // avoid actual console.log in test output
 
@@ -110,12 +111,73 @@ describe('getLabelsForDisplay()', () => {
 });
 
 describe('JIRA Client', () => {
-  // use this to test if the token is correct
-  it.skip('should be able to access the issue', async () => {
-    const jira = new Jira('https://cleartaxtech.atlassian.net/', '<username>', '<token_here>');
-    const details = await jira.getTicketDetails('ES-10');
-    console.log({ details });
+  it('test to access jira ticket from multiple keys when second key is wrong', async () => {
+    // for mocking jira client
+    nock('https://cleartaxtech.atlassian.net').get('/rest/api/3').reply(200, { key: 'key' });
+    // for mocking the issue key api with 200
+    nock('https://cleartaxtech.atlassian.net/rest/api/3')
+      .get('/issue/TEST-1234?fields=project,summary,issuetype,labels,status,customfield_10016')
+      .reply(200, {
+        id: 'TEST-1234',
+        key: 'TEST-1234',
+        self: 'TEST-1234',
+        status: 'success',
+        fields: {
+          summary: 'test',
+          status: 'IssueStatus',
+          priority: 'IssuePriority',
+          issuetype: 'IssueType',
+          project: 'IssueProject',
+          labels: [],
+        },
+      });
+
+    // for mocking the request for 404 request
+    nock('https://cleartaxtech.atlassian.net/rest/api/3')
+      .get('/issue/TEST-123456?fields=project,summary,issuetype,labels,status,customfield_10016')
+      .reply(404, {});
+    const jira = new Jira('https://cleartaxtech.atlassian.net', '<username>', '<token_here>');
+    // when the first key is valid
+    const details = await jira.getJiraDetails(['TEST-1234', 'TEST-123456']);
     expect(details).not.toBeNull();
+    expect(details?.key).toEqual('TEST-1234');
+  });
+
+  it('test to access jira ticket from multiple keys when first is wrong', async () => {
+    // for mocking jira client
+    nock('https://cleartaxtech.atlassian.net').get('/rest/api/3').reply(200, { key: 'key' });
+    // for mocking the issue key api with 200
+    nock('https://cleartaxtech.atlassian.net/rest/api/3')
+      .get('/issue/TEST-1234?fields=project,summary,issuetype,labels,status,customfield_10016')
+      .reply(200, {
+        id: 'TEST-1234',
+        key: 'TEST-1234',
+        self: 'TEST-1234',
+        status: 'success',
+        fields: {
+          summary: 'test',
+          status: 'IssueStatus',
+          priority: 'IssuePriority',
+          issuetype: 'IssueType',
+          project: 'IssueProject',
+          labels: [],
+        },
+      });
+
+    // for mocking the request for 404 request
+    nock('https://cleartaxtech.atlassian.net/rest/api/3')
+      .get('/issue/TEST-123456?fields=project,summary,issuetype,labels,status,customfield_10016')
+      .reply(404, {});
+    const jira = new Jira('https://cleartaxtech.atlassian.net', '<username>', '<token_here>');
+
+    // when the second key is a valid
+    const details = await jira.getJiraDetails(['TEST-123456', 'TEST-1234']);
+    expect(details).not.toBeNull();
+    expect(details?.key).toEqual('TEST-1234');
+
+    // when both the keys are wrong
+    const result = await jira.getJiraDetails(['TEST-123456', 'TEST-12341']);
+    expect(result).toBeNull();
   });
 });
 

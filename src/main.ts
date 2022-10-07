@@ -104,6 +104,8 @@ async function run(): Promise<void> {
       title = '',
     } = pullRequest as PullRequestParams;
 
+    console.log('github object', pullRequest);
+
     // common fields for both issue and comment
     const commonPayload: UpdateIssueParams = { owner, repo, issue: prNumber };
     const gh = new GitHub(githubToken);

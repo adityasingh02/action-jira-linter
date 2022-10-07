@@ -131,6 +131,8 @@ async function run(): Promise<void> {
     const branchIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
     const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(title);
 
+    console.log('Issue keys', branchIssueKeys, titleIssueKeys);
+
     // merge the branch and title issue keys
     const issueKeys = [...branchIssueKeys, ...titleIssueKeys];
     if (!issueKeys.length) {

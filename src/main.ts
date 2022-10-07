@@ -127,6 +127,7 @@ async function run(): Promise<void> {
     if (GitHub.shouldSkipBranchLint(headBranch, branchIgnorePattern)) {
       process.exit(0);
     }
+    console.log('PR title', title);
 
     const branchIssueKeys: string[] = Jira.getJIRAIssueKeys(headBranch);
     const titleIssueKeys: string[] = Jira.getJIRAIssueKeys(title);

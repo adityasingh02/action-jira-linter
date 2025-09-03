@@ -12,7 +12,7 @@ import { DEFAULT_PR_ADDITIONS_THRESHOLD } from './constants';
 import { GitHub } from './github';
 import { Jira } from './jira';
 
-const getInputs = (): JIRALintActionInputs => {
+export const getInputs = (): JIRALintActionInputs => {
   const jiraUser: string = core.getInput('jira-user', { required: true });
   const jiraToken: string = core.getInput('jira-token', { required: true });
   const jiraBaseURL: string = core.getInput('jira-base-url', {
@@ -28,6 +28,7 @@ const getInputs = (): JIRALintActionInputs => {
   const validateIssueStatus: boolean = core.getInput('validate-issue-status', { required: false }) === 'true';
   const allowedIssueStatuses: string[] = core.getMultilineInput('allowed-issue-statuses');
   const failOnError: boolean = core.getInput('fail-on-error', { required: false }) !== 'false';
+  const inputPrNumber: string = core.getInput('pr-number', { required: false }) || '';
 
   return {
     jiraUser,
@@ -41,10 +42,11 @@ const getInputs = (): JIRALintActionInputs => {
     validateIssueStatus,
     allowedIssueStatuses,
     failOnError,
+    prNumber: inputPrNumber,
   };
 };
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
   try {
     const {
       jiraUser,
@@ -58,6 +60,7 @@ async function run(): Promise<void> {
       validateIssueStatus,
       allowedIssueStatuses,
       failOnError,
+      prNumber: inputPrNumber,
     } = getInputs();
 
     const exit = (message: string): void => {
@@ -85,15 +88,43 @@ async function run(): Promise<void> {
       return exit(`Missing 'repository' from github action context.`);
     }
 
-    if (typeof pullRequest === 'undefined') {
-      console.log(`Missing 'pull_request' from github action context. Skipping.`);
-      return;
-    }
-
     const {
       name: repo,
       owner: { login: owner },
     } = repository;
+
+    // Create GitHub client early as we might need it to fetch PR data
+    const gh = new GitHub(githubToken);
+    let pullRequestData: PullRequestParams;
+
+    if (typeof pullRequest === 'undefined') {
+      // If pull_request is not in context, try to fetch it using the provided pr-number
+      if (!inputPrNumber) {
+        console.log(`Missing 'pull_request' from github action context and no 'pr-number' provided. Skipping.`);
+        return;
+      }
+
+      const prNumberInt = parseInt(inputPrNumber, 10);
+      if (isNaN(prNumberInt)) {
+        return exit(`Invalid 'pr-number' provided: ${inputPrNumber}. Must be a valid number.`);
+      }
+
+      console.log(`Fetching pull request data for PR #${prNumberInt} using GitHub API...`);
+
+      try {
+        const resp = await gh.client.rest.pulls.get({
+          owner,
+          repo,
+          pull_number: prNumberInt,
+        });
+        pullRequestData = resp.data as PullRequestParams;
+        console.log(`Successfully fetched pull request data for PR #${prNumberInt}`);
+      } catch (error) {
+        return exit(`Failed to fetch pull request data for PR #${prNumberInt}: ${(error as Error)?.message}`);
+      }
+    } else {
+      pullRequestData = pullRequest as PullRequestParams;
+    }
 
     const {
       base: { ref: baseBranch },
@@ -102,11 +133,10 @@ async function run(): Promise<void> {
       body: prBody = '',
       additions = 0,
       title = '',
-    } = pullRequest as PullRequestParams;
+    } = pullRequestData;
 
     // common fields for both issue and comment
     const commonPayload: UpdateIssueParams = { owner, repo, issue: prNumber };
-    const gh = new GitHub(githubToken);
     const jira = new Jira(jiraBaseURL, jiraUser, jiraToken);
 
     if (!headBranch && !baseBranch) {
@@ -211,4 +241,7 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+// Only run if not in test environment
+if (require.main === module) {
+  run();
+}

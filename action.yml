@@ -44,6 +44,9 @@ inputs:
     description: 'Set this to true if you want action-jira-linter to fail the PR if it encounters an error'
     required: false
     default: true
+  pr-number:
+    description: 'Pull request number to fetch PR data when pull_request context is not available (e.g., in workflow_dispatch events)'
+    required: false
 
 runs:
   using: 'node12'
